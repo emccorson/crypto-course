@@ -68,8 +68,33 @@ public class TxHandler {
      * updating the current UTXO pool as appropriate.
      */
     public Transaction[] handleTxs(Transaction[] possibleTxs) {
-        // IMPLEMENT THIS
-        return null;
+        ArrayList<Transaction> ret = new ArrayList<>();
+
+        Transaction tx;
+        byte[] hash;
+        ArrayList<Transaction.Input> inputs;
+        Transaction.Output op;
+
+        for (int i = 0; i < possibleTxs.length; i++) {
+            tx = possibleTxs[i];
+
+            if (isValidTx(tx)) {
+                hash = tx.getHash();
+                inputs = tx.getInputs();
+
+                for (Transaction.Input ip : tx.getInputs()) {
+                    utxoPool.removeUTXO(new UTXO(ip.prevTxHash, ip.outputIndex));
+                };
+
+                for (int j = 0; j < tx.numOutputs(); j++) {
+                    utxoPool.addUTXO(new UTXO(hash, j), tx.getOutput(j));
+                }
+
+                ret.add(tx);
+            }
+        }
+
+        return (Transaction[]) ret.toArray();
     }
 
 }
