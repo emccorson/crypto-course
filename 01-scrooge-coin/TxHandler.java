@@ -75,7 +75,7 @@ public class TxHandler {
      * updating the current UTXO pool as appropriate.
      */
     public Transaction[] handleTxs(Transaction[] possibleTxs) {
-        ArrayList<Transaction> ret = new ArrayList<>();
+        ArrayList<Transaction> chosen = new ArrayList<>();
 
         Transaction tx;
         byte[] hash;
@@ -97,11 +97,16 @@ public class TxHandler {
                     utxoPool.addUTXO(new UTXO(hash, j), tx.getOutput(j));
                 }
 
-                ret.add(tx);
+                chosen.add(tx);
             }
         }
 
-        return (Transaction[]) ret.toArray();
+        Transaction[] ret = new Transaction[chosen.size()];
+        for (int k = 0; k < ret.length; k++) {
+          ret[k] = chosen.get(k);
+        }
+
+        return ret;
     }
 
 }
