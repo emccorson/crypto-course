@@ -27,6 +27,7 @@ public class TxHandler {
         double totalInputValue = 0;
 
         ArrayList<Transaction.Input> inputs = tx.getInputs();
+        ArrayList<UTXO> seen = new ArrayList<>();
         Transaction.Input input;
 
         for (int i = 0; i < inputs.size(); i++) {
@@ -37,6 +38,12 @@ public class TxHandler {
             if (!utxoPool.contains(utxo)) {
                 return false;
             }
+
+            // check output isn't claimed twice in this tx
+            if (seen.contains(utxo)) {
+              return false;
+            }
+            seen.add(utxo);
 
             // check signature is valid
             Transaction.Output output = utxoPool.getTxOutput(utxo);
