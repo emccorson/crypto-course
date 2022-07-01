@@ -3,17 +3,14 @@ import java.util.*;
 /* CompliantNode refers to a node that follows the rules (not malicious)*/
 public class CompliantNode implements Node {
 
-    private int numRounds;
-    private int currentRound;
+    private int roundsLeft;
     private boolean[] followees;
     private Set<Transaction> pendingTransactions;
-    private Set<Transaction> sent;
-    private Set<Candidate> candidates;
+    private ArrayList<Integer> sent;
 
     public CompliantNode(double p_graph, double p_malicious, double p_txDistribution, int numRounds) {
-        this.numRounds = numRounds;
-        this.currentRound = 0;
-        this.sent = new HashSet<>();
+        this.roundsLeft = numRounds;
+        this.sent = new ArrayList<>();
     }
 
     public void setFollowees(boolean[] followees) {
@@ -27,22 +24,33 @@ public class CompliantNode implements Node {
     public Set<Transaction> sendToFollowers() {
         Set<Transaction> send;
 
-        if (this.currentRound < this.numRounds) {   // sending to followers
-            send = this.pendingTransactions;
-            sent.addAll(this.pendingTransactions);
-        } else {                                    // sending to simulator
-            ArrayList<Integer> array = new ArrayList<>();
-            for (Transaction tx : this.sent) {
-                array.add(tx.id);
+        if (this.roundsLeft-- > 0) {
+            for (Transaction t : this.pendingTransactions) {
+                sent.add(t.id);
             }
-            Collections.sort(array);
-            send = new HashSet<>();
-            send.add(new Transaction(array.get(0)));
+            return this.pendingTransactions;
+        } else {
+            Set<Transaction> ret = new HashSet<>();
+
+            switch (sent.size()) {
+                case 0:
+                    break;
+                case 1:
+                    ret.add(new Transaction(sent.get(0)));
+                    break;
+                default:
+                    int lowestId = sent.get(0);
+                    for (Integer i : sent) {
+                        if (i < lowestId) {
+                            lowestId = i;
+                        }
+                    }
+                    ret.add(new Transaction(lowestId));
+                    break;
+            }
+
+            return ret;
         }
-
-        this.currentRound++;
-
-        return send;
     }
 
     public void receiveFromFollowees(Set<Candidate> candidates) {
